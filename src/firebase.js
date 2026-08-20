@@ -25,18 +25,18 @@ import {
 // To enable cloud sync, paste your real config from console.firebase.google.com
 // ---------------------------------------------------------------------------
 const firebaseConfig = {
-  apiKey: "AIzaSyCJM38Fv4c7mpkO0aRLOfg4KC4v4wwNpOE",
-  authDomain: "forgeup-fe66c.firebaseapp.com",
-  projectId: "forgeup-fe66c",
-  storageBucket: "forgeup-fe66c.firebasestorage.app",
-  messagingSenderId: "210250377863",
-  appId: "1:210250377863:web:172e623638a44439abe622",
-  measurementId: "G-VEW1WGG4CQ",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 export const isFirebaseConfigured =
-  firebaseConfig.apiKey !== "YOUR_API_KEY" &&
-  firebaseConfig.projectId !== "YOUR_PROJECT_ID";
+  firebaseConfig.apiKey !== "AIzaSyCJM38Fv4c7mpkO0aRLOfg4KC4v4wwNpOE" &&
+  firebaseConfig.projectId !== "forgeup-fe66c";
 
 let app = null;
 let auth = null;
