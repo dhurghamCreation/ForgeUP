@@ -44,13 +44,13 @@ export default function SocialFeed({ onBack, currentUser, onPostWorkout, onRequi
 
     const loadSocial = async () => {
       try {
-        const { isFirebaseConfigured, getFeed, getChallenges, getLeaderboard } = await import("../firebase");
-        if (!isFirebaseConfigured) {
-          if (mounted) {
-            setError(t("firebaseNeeded"));
-          }
-          return;
-        }
+        const { getFeed, getChallenges, getLeaderboard } = await import("../firebase");
+        // The community screen stays functional in BOTH modes: when Firebase is
+        // configured this streams real Firestore data; when not configured, the
+        // imported getFeed/getChallenges/getLeaderboard transparently fall back
+        // to the local browser engine. Always mark the feed ready so sharing
+        // (kudos / comments) works locally too instead of surfacing a
+        // "connectivity" error.
         if (mounted) setFirebaseReady(true);
 
         const unsubFeed = getFeed((posts) => {

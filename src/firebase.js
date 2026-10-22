@@ -14,6 +14,7 @@ import { initializeApp } from "firebase/app";
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged,
+  setPersistence, browserLocalPersistence,
 } from "firebase/auth";
 import {
   getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit,
@@ -35,19 +36,34 @@ const firebaseConfig = {
   measurementId: "G-VEW1WGG4CQ"
 };
 
-export const isFirebaseConfigured =
-  firebaseConfig.apiKey !== "AIzaSyCJM38Fv4c7mpkO0aRLOfg4KC4v4wwNpOE" &&
-  firebaseConfig.projectId !== "forgeup-fe66c";
+// Detect "real, usable" config structurally: the env vars must be populated
+// with actual project values and must NOT be the README placeholders
+// ("your_api_key" / "your_project_id"). Previously this compared against the
+// *real* production values that match the local .env, which INVERTED the check:
+// whenever a real config was supplied the check returned false, silently
+// forcing local-only mode (broken Google sign-in, broken community feed, and
+// no cross-device session restoration). See ForgeUp issue thread.
+const hasRealConfig =
+  typeof firebaseConfig.apiKey === "string" &&
+  firebaseConfig.apiKey.length > 0 &&
+  firebaseConfig.apiKey !== "your_api_key" &&
+  typeof firebaseConfig.projectId === "string" &&
+  firebaseConfig.projectId.length > 0 &&
+  firebaseConfig.projectId !== "your_project_id";
 
 let app = null;
 let auth = null;
 let db = null;
 let googleProvider = null;
 
-if (isFirebaseConfigured) {
+if (hasRealConfig) {
   try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
+    // Persist sessions across reloads/tabs (LOCAL). Firebase defaults to
+    // local persistence on web, but set it explicitly so sign-in is reliably
+    // restored on every app load (users stay logged in instead of re-auth).
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
     db = getFirestore(app);
     googleProvider = new GoogleAuthProvider();
   } catch (e) {
@@ -55,6 +71,13 @@ if (isFirebaseConfigured) {
     app = null; auth = null; db = null; googleProvider = null;
   }
 }
+
+// Reflects whether Firebase ACTUALLY initialized successfully. This gates the
+// community/leaderboard screen (SocialFeed.jsx). When false, the app runs in
+// local-only mode with the built-in browser engine — and the auth/data helpers
+// below transparently fall back to local storage, so email/password sign-in
+// and a fully-functional local feed/leaderboard still work.
+export const isFirebaseConfigured = auth !== null && db !== null;
 
 // ============================================================================
 // LOCAL AUTH & DATA ENGINE — works with zero configuration, zero cost
